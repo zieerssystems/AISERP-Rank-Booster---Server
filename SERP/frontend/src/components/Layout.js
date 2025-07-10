@@ -11,6 +11,13 @@ const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  
+
+    const capitalizeFirstLetter = (str) => {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
   // useEffect(() => {
   //   const storedUsername = localStorage.getItem('username');
   //   if (storedUsername) {
@@ -36,6 +43,8 @@ const Layout = () => {
         Login
       </Button>
     );
+
+
   
     const campaignLink = username && (
       <Nav.Link href="/createcampaign" className="nav-link-custom">Campaign</Nav.Link>
@@ -172,7 +181,7 @@ const Layout = () => {
               )} */}
               {username && (
                   <NavDropdown 
-                    title={<span style={{ color: 'white' }}>{username}</span>} 
+                    title={<span style={{ color: 'white' }}>{capitalizeFirstLetter(username)}</span>}
                     id="profile-dropdown"
                   >
                     <NavDropdown.Item onClick={() => navigate("/profile")}>View Profile</NavDropdown.Item>
