@@ -150,190 +150,151 @@ const CreateCampaign = () => {
 
 
 
+let useApiFlag = false; // ✅ Force browser-based execution
+let isRunning = false;
 
-
-      // let isRunning = false;
-
-      // const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-      // // 🔄 Random Delay Function
-      // const randomDelay = (min, max) => {
-      //   return new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * (max - min + 1)) + min));
-      // };
-
-      // // 📜 Simulate Scroll
-      // const simulateScroll = () => {
-      //   let scrollY = 0;
-      //   const interval = setInterval(() => {
-      //     window.scrollBy(0, 100 + Math.floor(Math.random() * 50));
-      //     scrollY += 150;
-      //     if (scrollY > window.innerHeight * 2) clearInterval(interval);
-      //   }, 500);
-      // };
-
-      // // 🖱️ Simulate Mouse Movement (basic)
-      // const simulateMouseMovement = () => {
-      //   const evt = new MouseEvent("mousemove", {
-      //     clientX: Math.floor(Math.random() * window.innerWidth),
-      //     clientY: Math.floor(Math.random() * window.innerHeight),
-      //     bubbles: true,
-      //   });
-      //   document.dispatchEvent(evt);
-      // };
-
-      // const getSearchEngineUrl = (engine, keyword) => {
-      //   const encodedKeyword = encodeURIComponent(keyword.trim());
-      //   switch (engine.toLowerCase()) {
-      //     case "google":
-      //       return `https://www.google.com/search?q=${encodedKeyword}`;
-      //     case "bing":
-      //       return `https://www.bing.com/search?q=${encodedKeyword}`;
-      //     case "yahoo":
-      //       return `https://search.yahoo.com/search?p=${encodedKeyword}`;
-      //     case "duckduckgo":
-      //       return `https://duckduckgo.com/?q=${encodedKeyword}`;
-      //     default:
-      //       return `https://www.google.com/search?q=${encodedKeyword}`;
-      //   }
-      // };
-
-      // const formatUrl = (url) => {
-      //   if (!url.startsWith("http")) {
-      //     return `https://${url.replace(/^\/+/, "")}`;
-      //   }
-      //   return url;
-      // };
-
-      // const handleStartCampaign = async () => {
-      //   if (isRunning) return;
-      //   isRunning = true;
-
-      //   const keywordArray = keywords
-      //     .split(",")
-      //     .map((k) => k.trim())
-      //     .filter((k) => k);
-
-      //   for (let keyword of keywordArray) {
-      //     if (!isRunning) break;
-
-      //     const searchUrl = getSearchEngineUrl(search_engine, keyword);
-      //     console.log("🔍 Opening search engine:", searchUrl);
-      //     window.open(searchUrl, "_blank");
-      //     await randomDelay(3000, 6000);
-      //     simulateScroll();
-      //     simulateMouseMovement();
-
-      //     try {
-      //       // const res = await fetch("http://localhost/serp/api/searchengine.php", {
-      //       const res = await fetch(`${process.env.REACT_APP_API_URL}/searchEngine.php`,{
-      //         method: "POST",
-      //         headers: { "Content-Type": "application/json" },
-      //         body: JSON.stringify({
-      //           search_engine: search_engine,
-      //           keywords: keyword,
-      //           domain_name: domain_name.trim().toLowerCase(),
-      //         }),
-      //       });
-
-      //       const data = await res.json();
-      //       console.log("✅ API Response:", data);
-
-      //       if (!data.success || !data.target_url) {
-      //         console.warn("❌ Domain not found.");
-      //         continue;
-      //       }
-
-      //       if (data.target_position) {
-      //         console.log(`🎯 Target domain found at position: ${data.target_position}`);
-      //       }
-      //       if (data.previous_position) {
-      //         console.log(`⏪ Previous domain was at position: ${data.previous_position}`);
-      //       }
-
-      //       const previousUrl = data.previous_url ? formatUrl(data.previous_url) : null;
-      //       if (previousUrl) {
-      //         console.log("⏪ Opening previous domain:", previousUrl);
-      //         window.open(previousUrl, "_blank");
-      //         await randomDelay(4000, 7000);
-      //         simulateScroll();
-      //         simulateMouseMovement();
-      //       }
-
-      //       const targetUrl = formatUrl(data.target_url);
-      //       console.log("🎯 Opening target domain:", targetUrl);
-      //       window.open(targetUrl, "_blank");
-      //       await randomDelay(6000, 9000);
-      //       simulateScroll();
-      //       simulateMouseMovement();
-      //     } catch (err) {
-      //       console.error("❌ Error fetching from backend:", err);
-      //     }
-      //   }
-
-      //   isRunning = false;
-      //   console.log("🎉 Campaign completed.");
-      // };
-
-
-  const handleStartCampaign = async (campaignId, domain, keywordsStr, engine) => {
+const handleStartCampaign = async (campaignId, domain, keywordsStr, engine) => {
   const keywords = keywordsStr.split(',').map((k) => k.trim());
 
-  try {
-   const response = await fetch("http://localhost:3001/run-campaign", {
-    // const apiUrl = process.env.REACT_APP_API_URL;
-    // const response = await fetch(`${apiUrl}/run-campaign`,{
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        searchEngine: engine,
-        keywords,
-        domainName: domain
-      })
-    });
+  if (useApiFlag === false) {
+    // Case 1: Run using backend API (headless Puppeteer)
+    try {
+      const response = await fetch("http://localhost:3001/run-campaign", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          searchEngine: engine,
+          keywords,
+          domainName: domain,
+        }),
+      });
 
-    const data = await response.json();
-    if (response.ok) {
-      alert(`✅ Campaign started successfully: ${data.message}`);
-    } else {
-      alert(`❌ Error: ${data.error || "Something went wrong."}`);
+      const data = await response.json();
+      if (response.ok) {
+        alert(`✅ Campaign started successfully: ${data.message}`);
+      } else {
+        alert(`❌ Error: ${data.error || "Something went wrong."}`);
+      }
+    } catch (err) {
+      alert(`❌ Request failed: ${err.message}`);
     }
-  } catch (err) {
-    alert(`❌ Request failed: ${err.message}`);
+  } else {
+    // Case 2: Run inside the browser (user-interaction-based)
+    if (isRunning) return;
+    isRunning = true;
+
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const randomDelay = (min, max) => {
+      return new Promise((resolve) =>
+        setTimeout(resolve, Math.floor(Math.random() * (max - min + 1)) + min)
+      );
+    };
+
+    const simulateScroll = () => {
+      let scrollY = 0;
+      const interval = setInterval(() => {
+        window.scrollBy(0, 100 + Math.floor(Math.random() * 50));
+        scrollY += 150;
+        if (scrollY > window.innerHeight * 2) clearInterval(interval);
+      }, 500);
+    };
+
+    const simulateMouseMovement = () => {
+      const evt = new MouseEvent("mousemove", {
+        clientX: Math.floor(Math.random() * window.innerWidth),
+        clientY: Math.floor(Math.random() * window.innerHeight),
+        bubbles: true,
+      });
+      document.dispatchEvent(evt);
+    };
+
+    const getSearchEngineUrl = (engine, keyword) => {
+      const encodedKeyword = encodeURIComponent(keyword.trim());
+      switch (engine.toLowerCase()) {
+        case "google":
+          return `https://www.google.com/search?q=${encodedKeyword}`;
+        case "bing":
+          return `https://www.bing.com/search?q=${encodedKeyword}`;
+        case "yahoo":
+          return `https://search.yahoo.com/search?p=${encodedKeyword}`;
+        case "duckduckgo":
+          return `https://duckduckgo.com/?q=${encodedKeyword}`;
+        default:
+          return `https://www.google.com/search?q=${encodedKeyword}`;
+      }
+    };
+
+    const formatUrl = (url) => {
+      if (!url.startsWith("http")) {
+        return `https://${url.replace(/^\/+/, "")}`;
+      }
+      return url;
+    };
+
+    for (let keyword of keywords) {
+      if (!isRunning) break;
+
+      const searchUrl = getSearchEngineUrl(engine, keyword);
+      console.log("🔍 Opening search engine:", searchUrl);
+      window.open(searchUrl, "_blank");
+      await randomDelay(3000, 6000);
+      simulateScroll();
+      simulateMouseMovement();
+
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/searchEngine.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            search_engine: engine,
+            keywords: keyword,
+            domain_name: domain.trim().toLowerCase(),
+          }),
+        });
+
+        const data = await res.json();
+        console.log("✅ API Response:", data);
+
+        if (!data.success || !data.target_url) {
+          console.warn("❌ Domain not found.");
+          continue;
+        }
+
+        if (data.target_position) {
+          console.log(`🎯 Target domain found at position: ${data.target_position}`);
+        }
+        if (data.previous_position) {
+          console.log(`⏪ Previous domain was at position: ${data.previous_position}`);
+        }
+
+        const previousUrl = data.previous_url ? formatUrl(data.previous_url) : null;
+        if (previousUrl) {
+          console.log("⏪ Opening previous domain:", previousUrl);
+          window.open(previousUrl, "_blank");
+          await randomDelay(4000, 7000);
+          simulateScroll();
+          simulateMouseMovement();
+        }
+
+        const targetUrl = formatUrl(data.target_url);
+        console.log("🎯 Opening target domain:", targetUrl);
+        window.open(targetUrl, "_blank");
+        await randomDelay(6000, 9000);
+        simulateScroll();
+        simulateMouseMovement();
+      } catch (err) {
+        console.error("❌ Error fetching from backend:", err);
+      }
+    }
+
+    isRunning = false;
+    console.log("🎉 Campaign completed.");
   }
 };
 
-
-
-
-
-// const handleStartCampaign = async (campaignId, domain, keywordsStr, engine) => {
-//   const keywords = keywordsStr.split(',').map((k) => k.trim());
-
-//   try {
-//     const response = await fetch("http://localhost:3001/run-campaign", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json"
-//       },
-//       body: JSON.stringify({
-//         searchEngine: engine,
-//         keywords,
-//         domainName: domain
-//       })
-//     });
-
-//     const data = await response.json();
-//     if (response.ok) {
-//       alert(`✅ Campaign started successfully: ${data.message}`);
-//     } else {
-//       alert(`❌ Error: ${data.error || "Something went wrong."}`);
-//     }
-//   } catch (err) {
-//     alert(`❌ Request failed: ${err.message}`);
-//   }
-// };
 
 
 

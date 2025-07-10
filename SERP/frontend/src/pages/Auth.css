@@ -14,22 +14,30 @@ body, html {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  height: 100vh;       /* Add full viewport height */
   background-color: #f1f1f1;
   padding: 20px;
+  overflow-y: auto;    /* Enable vertical scroll if needed */
 }
 
-/* Container - Increased width and height */
+/* Container - Increased width */
+/* ----------- CHANGE START ----------- */
 .login-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   width: 95%;
   max-width: 1400px;
-  height: 95vh;
+
+  /* Remove fixed height and overflow hidden */
+  height: auto;        /* Allow container to grow with content */
+  max-height: none;
+  overflow: visible;   /* Show overflowing content */
+  
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
   border-radius: 20px;
-  overflow: hidden;
   background-color: white;
 }
+/* ----------- CHANGE END ----------- */
 
 /* Image section */
 .login-image {
@@ -55,6 +63,11 @@ body, html {
   padding: 60px;
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
+
+  /* Allow form card to grow naturally */
+  height: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 /* Title */
@@ -102,21 +115,30 @@ body, html {
   width: 100%;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
+  margin-bottom: 10px;  /* Add margin bottom to separate from links */
 }
 .login-button:hover {
   background-color: #5a4bd8;
   transform: scale(1.03);
 }
 
+/* ----------- ADD THIS FOR LINKS IN ONE ROW ----------- */
+.links-row {
+  display: flex;
+  justify-content: center;
+  gap: 30px;        /* Space between links */
+  flex-wrap: wrap;  /* Wrap on small screens */
+  margin-top: 10px;
+}
 
+/* Links */
 .login-link {
   color: #6c5ce7;
   text-decoration: none;
   font-weight: 500;
   font-size: 14px;
-  display: block;
   text-align: center;
-  margin-top: 15px;
+  white-space: nowrap;  /* Prevent breaking */
   transition: color 0.3s;
 }
 
@@ -125,6 +147,7 @@ body, html {
   color: #4a3bd1;
 }
 
+/* Avatar */
 .avatar {
   width: 70px;
   height: 70px;
@@ -148,6 +171,7 @@ body, html {
   }
 }
 
+/* Other animations unchanged */
 @keyframes slideUp {
   from {
     transform: translateY(50px);
